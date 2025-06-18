@@ -1,0 +1,160 @@
+\section{SCA Characterization \& Leakage Modeling} % Section Title
+
+%---------------------------------------------------------
+% Slide: Introduction to Leakage Characterization
+\begin{frame}
+    \frametitle{Characterizing Microarchitecture Leakage}
+    \begin{block}{The Foundation of Leakage}
+        \begin{itemize}
+            \item Gates driving large capacitive loads are primary sources of side-channel leakage.
+            \item Power consumption in such scenarios is well-modeled by the \textbf{Hamming distance} of two values asserted on their outputs in subsequent clock cycles
+        \end{itemize}   
+    \end{block}
+
+    \begin{block}{Detecting Leakage}
+        \begin{itemize}
+            \item \textbf{Pearson's correlation coefficient} is used to statistically compare measured power consumption with the predicted leakage model
+            \item A correlation statistically distinguishable from zero (with >99.5\% confidence) in the correct clock cycle indicates a leakage
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Experimental Setup for Leakage Measurement
+\begin{frame}
+    \frametitle{Leakage Measurement - Cortex-A7}
+    \begin{block}{Data Collection}
+        \begin{itemize}
+            \item Seven micro-benchmarks: small (2-4) instruction sequences designed to trigger specific component activities
+            \item Ran with randomly generated values at each execution, triggered by GPIO
+            \item Cache effects eliminated by measuring executions after the first one and inserting 100 \texttt{nop}s
+            \item Data acquired: \textbf{100,000 power traces} per benchmark
+            \item Each trace was an average of 16 individual executions with the same input, reducing noise
+            \item Register File (RF) leakage was evaluated separately by pre-charging destination registers
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Leakage Findings: Register File & IS/EX Buffers
+\begin{frame}
+    \frametitle{Observed Leakage: Registers}
+    \begin{block}{Register File (RF)}
+        \begin{itemize}
+            \item No statistically significant leakage observed from RF read-ports.
+            \item Attributed to a short capacitive load, as Issue Stage (IS) buffers drive execution units
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Observed Leakage: IS/EX}
+    \begin{block}{Issue/Execution (IS/EX) Buffers}
+        \begin{itemize}
+            \item Outputs show significant leakage
+            \item \textbf{Modeled by Hamming Distance:} between values of a source operand of an older and a younger single-issued instruction
+                \begin{itemize}
+                    \item Leakage prominent when operands share the same bus (same source operand position)
+                \end{itemize}
+            \item \textbf{Hamming Weight Leakage:} Also observed when \texttt{mov}s are interleaved with \texttt{nop}s (due to \texttt{nop} implementation with zero-valued operands)
+            \item Dual-issued arithmetic instructions show no measurable leakage among source operands (no shared resources before computation)
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Leakage Findings: ALU, Shift, and EX/WB Buffers
+\begin{frame}
+    \frametitle{Observed Leakage: ALUs }
+    \begin{block}{ALU and Shift Buffer}
+        \begin{itemize}
+            \item \textbf{ALU:} Leakage dependent on the \textbf{Hamming weight} of the instruction result
+                \begin{itemize}
+                    \item Inferred due to ALUs asserting results on previously zero-precharged signals
+                \end{itemize}
+            \item \textbf{Shift Buffer:} A small leakage proportional to the \textbf{Hamming weight} of the shifted value is present
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Observed Leakage: EX/WB Buffers}
+    \begin{block}{Execution/Write-Back (EX/WB) Buffers}
+        \begin{itemize}
+            \item Leakage mirrors IS/EX buffers.
+            \item \textbf{Modeled by Hamming Distance:} between the \textit{results} of subsequent single-issued instructions.
+                \begin{itemize}
+                    \item Occurs regardless of destination register sharing or data-flow relationship
+                \end{itemize}
+            \item \textbf{Hamming Weight Leakage:} Also present for instruction results.
+                \begin{itemize}
+                    \item Attributed to \texttt{nop} instructions resetting the WB bus to zero 
+                \end{itemize}
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Leakage Findings: MDR & Align Buffer
+\begin{frame}
+    \frametitle{Observed Leakage: MDR}
+    \begin{block}{Memory Data Register (MDR) and Align Buffer}
+        \begin{itemize}
+            \item Potential leakage source during load/store instruction sequences
+            \item \textbf{Modeled by Hamming Distance:} between two subsequently loaded or stored values
+            %\item Applies even to half-word and single-byte loads/stores (power proportional to HD between full 32-bit words).
+            \item Suggests a separate buffer in the Load Store Unit (LSU) for sub-word realignment
+            \item Presence of this \textbf{align buffer} and its leakage was confirmed experimentally
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Superscalar Leakage Modeling -  Complexities
+\begin{frame}
+    \frametitle{Superscalar Leakage Modeling}
+    \begin{block}{Leakage from Algorithmically Independent Instructions}
+        \begin{itemize}
+            \item Observed information leakage that combines values from potentially independent instructions, driven by four causes:
+                \begin{enumerate}
+                    \item Instruction scheduling order
+                    \item Position of source operands
+                    \item Single or dual-issuing of instructions
+                    \item Potential data remanence in LSU buffers
+                \end{enumerate}
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+    \frametitle{Superscalar Leakage Modeling}
+    \begin{block}{Subtle Code Changes can be Harmful}
+        \begin{itemize}
+            \item Even apparently harmless changes to assembly code (e.g., swapping source operands of a commutative operation like XOR) can lead to side-channel leakage
+            \item This is due to altered pipeline resource sharing
+            \item Such changes are difficult to detect by tools focusing only on instruction semantics or manual audits
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%---------------------------------------------------------
+% Slide: Superscalar Leakage Modeling - Further Complexities
+\begin{frame}
+    \frametitle{Superscalar Leakage: Vulnerabilities}
+    \begin{block}{Impact of Dual-Issuing}
+        \begin{itemize}
+            \item Worsens effects of instruction scheduling and operand position.
+            \item Leakage can stem from combinations of source operands of \textit{non-consecutive} instructions if an intermediate instruction is dual-issued
+            \item Highlights the crucial, often-neglected importance of instruction scheduling for preventing side-channel leakage
+            \item Dual-issuing could also potentially \textbf{enhance security} by enabling parallel computation of two shares in masking schemes
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\frametitle{Superscalar Leakage: Vulnerabilities}
+    \begin{block}{Data Remanence and NOPs}
+        \begin{itemize}
+            \item \textbf{Data Remanence:} In MDR and LSU buffers, old data can accidentally combine with current computation results, creating harmful leakage.
+            \item \textbf{NOP Operations:} While semantically neutral, \texttt{nop} instructions can introduce new leakage modes (e.g., by resetting buses to zero). They are not \textit{security neutral}
+        \end{itemize}
+    \end{block}
+\end{frame}

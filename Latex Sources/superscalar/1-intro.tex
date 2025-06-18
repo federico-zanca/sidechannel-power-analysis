@@ -1,0 +1,83 @@
+
+\section{Introduction \& Context}
+
+%---------------------------------------------------------
+%Changing visivility of the text
+% slide 1
+%\begin{frame}
+%\frametitle{The Evolving Target: Complex CPUs}
+%\begin{block}{Remark}
+
+%\end{block}
+
+%\begin{itemize}
+%    \item<1-> Text visible on slide 1
+%    \item<2-> Text visible on slide 2
+%    \item<3> Text visible on slides 3
+%    \item<4-> Text visible on slide 4
+%\end{itemize}
+%\end{frame}
+
+
+% Slide: Recap: Side-Channel Attacks 
+\begin{frame}
+    \frametitle{Recap: What are Side-Channel Attacks?}
+    \begin{block}{Definition}
+        \begin{itemize}
+            \item Side-Channel Attacks (SCAs) exploit unintended physical emanations (e.g., power consumption, electromagnetic radiation, execution time) from a device
+            \item These emanations are correlated with the secret data being processed, allowing an attacker to infer sensitive information (e.g., cryptographic keys)
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{The Fundamental Question }
+        \begin{itemize}
+            \item How do we accurately \textit{model} these physical emanations to find the leaked information?
+            %\item This presentation delves into the specifics of leakage modeling, especially on modern, complex CPUs.
+        \end{itemize}
+    \end{block}
+\end{frame}
+%---------------------------------------------------------
+%---------------------------------------------------------
+% Slide:  Complex CPUs
+\begin{frame}
+    \frametitle{Complex CPU Targets}
+    \begin{block}{SCA Challenges on Modern CPUs}
+    \begin{itemize}
+        \item SCAs are increasingly targeting complex platforms:
+            \begin{itemize}
+                \item SCA targets have evolved from simple micro-controllers and smart-cards to complex single-core and laptop-grade CPUs
+                \item Now, side-channel attacks are also relevant for superscalar CPUs
+            \end{itemize}
+        \item Assessing vulnerability and validating countermeasures becomes significantly more difficult with increasing target complexity
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+
+
+
+% Slide: Why Microarchitecture Matters ( 1)
+\begin{frame}
+    \frametitle{Why Microarchitecture Matters for SCA}
+    \begin{block}{Main Idea} 
+        \begin{itemize}
+            \item To assess the side-channel vulnerability of software on a CPU, we \textbf{must} consider the CPU's microarchitectural features.
+            \item Correct execution only requires the object code to match the CPU at ISA level.
+            \item However, the extent of side-channel leakage also depends on the processor's microarchitecture.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% Slide: Why Microarchitecture Matters (2)
+\begin{frame}
+    \frametitle{Why Microarchitecture Matters for SCA}
+    \begin{block}{Dangers of Ignoring Microarchitecture}
+        \begin{itemize}
+            \item Side-channel countermeasures, if designed without microarchitectural awareness, can be invalidated.
+            \item \textbf{Example}: Accidental value combinations due to register reuse, despite careful assembly implementations.
+        \end{itemize}
+    \end{block}
+\end{frame}
+%---------------------------------------------------------
+
+%---------------------------------------------------------
