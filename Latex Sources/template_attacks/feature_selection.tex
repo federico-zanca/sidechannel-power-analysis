@@ -1,0 +1,26 @@
+\section{Feature selection}
+%---------------------------------------------------------
+% Slide 3: Feature Selection: A Crucial Preprocessing Step
+\begin{frame}
+    \frametitle{Feature Selection: A Crucial Preprocessing Step}
+    \begin{block}{Why Feature Selection is Needed}
+        \begin{itemize}
+            \item Side-channel traces can contain hundreds or thousands of samples (time points)
+            \item Too many samples can introduce noise, increase computational complexity, and lead to numerical instability, especially for machine learning algorithms and covariance matrix inversion in Template Attacks
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\frametitle{Feature Selection: Common Techniques}
+            \item Feature selection aims to select a subset of trace samples that contain the most sensitive leakage information, often explicitly identifying them as \textbf{Points of Interest (POIs)}, or to transform the data into a smaller, more meaningful set of \textbf{features}
+            \item This process helps to filter out redundant or uncorrelated information, making the profiling and exploitation phases more efficient and effective.
+    \begin{block}{}
+        \begin{itemize}
+            \begin{itemize}
+                \item \textbf{Maximum Variance:} Selecting samples that show the most variation across traces
+                \item \textbf{Sum of Squares of t-difference (SOST):} Identifies samples where the difference in means between classes (e.g., key hypotheses) is most statistically significant
+                \item \textbf{Principal Component Analysis (PCA):} A dimensionality reduction technique that transforms original, correlated variables into a new set of uncorrelated variables (principal components), ordered by the amount of variance they explain
+            \end{itemize}
+        \end{itemize}
+    \end{block}
+\end{frame}

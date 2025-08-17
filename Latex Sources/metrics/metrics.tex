@@ -1,18 +1,24 @@
 \documentclass{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage{pifont}
+\usepackage{caption}
 \usetheme{Madrid}
 \usecolortheme{default}
-\input{metrics/metrics}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{float}
+
 %------------------------------------------------------------
 %This block of code defines the information to appear in the
 %Title page
 \title[Power Analysis Side-channel Attacks] %optional
-{Side-channel security of superscalar CPUs}
+{Side-channel Metrics}
 
 \subtitle{}
 
-\author[Federico Zanca] % (optional)
+\author[Federico Zanca] % (optional)    
 {Federico Zanca}
 
 \institute[] % (optional)
@@ -65,15 +71,10 @@
 \end{frame}
 %---------------------------------------------------------
 
-
-
-
-
-
-\input{superscalar/1-intro}
-\input{superscalar/2-cpi}
-\input{superscalar/3-leakage-modeling}
-
+\input{metrics/num_of_traces}
+\input{metrics/SNR}
+\input{metrics/score_and_rank}
+\input{metrics/sr_and_ge}
 
 
 
