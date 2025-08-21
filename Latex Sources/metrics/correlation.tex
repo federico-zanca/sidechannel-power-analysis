@@ -1,0 +1,148 @@
+\section{Correlation as a Metric}
+
+\begin{frame}
+    \frametitle{Correlation as a Metric: Motivation}
+
+    \begin{block}{Why Correlation?}
+        Most side-channel metrics (SR, GE, score, rank) require success in the attack, but provide little information on how many traces are theoretically needed for success, especially if the attack fails.
+    \end{block}
+    \begin{itemize}
+        \item Correlation gives a way to estimate and project the effort needed to recover the key.
+        \item It enables "security projections": estimating how many traces are needed for the correct key candidate to distinguish itself from others.
+        \item This is particularly useful when the attack hasn't succeeded yet, allowing for predictive evaluation.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pearson Correlation and Trace Projection}
+
+    \begin{block}{Pearson's Correlation in Side-Channel Analysis}
+        In CPA (Correlation Power Analysis), Pearson's correlation coefficient $\rho$ is computed between:
+        \begin{itemize}
+            \item The observed leakage traces $l_1,l_2,\dots,l_n$
+            \item The modeled leakages $g(f(x_i,k))$ for a given key candidate $k$
+        \end{itemize}
+        For the correct key $k_c$ denote this as $\rho_{k_c}$
+    \end{block}
+    $$ 
+    \rho_{k_c} = \frac{
+        \sum_{i=1}^n (l_i - \frac{1}{n}\sum_{j=1}^{n}l_j)
+        (v_i - \frac{1}{n}\sum_{i=j}^{n}v_j)
+     }{
+        \sqrt{\sum_{i=1}^n (l_i - \frac{1}{n}\sum_{j=1}^{n}l_j)^2}
+        \sqrt{\sum_{i=1}^n (v_i - \frac{1}{n}\sum_{j=1}^{n}v_j)^2}
+     }
+     $$
+     \scriptsize where $v_i = g(f(x_i,k_c))$
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{When Does CPA Succeed?}
+
+    \begin{block}{Success Criterion}
+        A CPA attack succeeds if $|\rho_{k_c}|$ for the correct key is noticeably higher than the absolute correlations for all incorrect key candidates.
+    \end{block}
+
+    \begin{itemize}
+        \item A common practical and theoretical assumption: for all incorrect keys, the expected correlation is close to zero.
+        \item Thus, success is reduced to distinguishing $\rho_{k_c}$ from zero (not from other possible nonzero values).
+    \end{itemize}
+
+    \begin{block}{Why is this Useful?}
+        If you know (or can estimate) the "true" value of $\rho_{k_c}$ post-attack, you can predict how many traces $n$ are required for reliable key recovery.
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Mangard's Shortcut: Projecting the Number of Traces}
+
+    \begin{block}{Formula for the Projected Number of Traces}
+        Given an estimate of $\rho_{k_c}$, the formula for predicting the number of traces needed for successful CPA key recovery is:
+        \[
+        n' = 3 + 8
+        \left|
+            \frac{z_{\alpha}}{ \ln \left( \frac{1+\rho_{k_c}}{1-\rho_{k_c}} \right) }
+        \right|^2
+        \]
+        where:
+        \begin{itemize}
+            \item $z_\alpha$ is the z-score for desired type I error $\alpha$ (e.g., $z_{0.01}$ for $1\%$ error);
+            \item $\rho_{k_c}$ is the estimated correlation for the correct key hypothesis.
+        \end{itemize}
+    \end{block}
+
+    
+            As $\rho_{k_c}$ decreases, the required number of traces grows quadratically. \newline
+             Only the correct key's correlation needs to be estimated: no need to compute all candidate correlations.
+      
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% POTREI AGGIUNGERE UNA SLIDE SU COME SCEGLIERE z_alpha (in particolare alpha che sta tra 10^-1 e 10^-4
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Correlation and SR
+
+\begin{frame}
+    \frametitle{Correlation and Success Rate (SR) Projection}
+
+        Instead of just estimating the number of traces needed for a break, we can predict the \textbf{Success Rate (SR)} of a CPA attack for a given number of traces.
+        
+        This method, developed by Rivain, uses the statistical properties of correlation scores $\rho$ for all key candidates.
+    
+    \begin{block}{The Custom Correlation Coefficient}
+        The analysis uses a slightly different correlation coefficient, $\ddot{\rho}_k$, for each key candidate $k \in K$:
+        $$ \ddot{\rho}_k = \frac{1}{n} \sum_{i=1}^{n} g(f(x_i, k)) \cdot l_i $$
+        The key candidate $k$ that maximizes this coefficient is chosen as the best guess by the CPA attack.
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Statistical Model of Correlation Scores}
+    
+    \begin{block}{A Multivariate Normal Distribution}
+        The core insight is that the vector of all correlation scores, $\ddot{\rho} = [\ddot{\rho}_0, \ddot{\rho}_1, \dots, \ddot{\rho}_{|K|-1}]$, follows a \textbf{multivariate normal distribution}.
+        
+        This distribution is defined by a mean vector $\mu_{\ddot{\rho}}$ and a covariance matrix $\Sigma_{\ddot{\rho}}$.
+    \end{block}
+    
+            The mean $\mu_k$ for each key candidate $k$ is:
+        $$ \mu_k = \frac{1}{|X|} \sum_{x \in X} g(f(x, k) \cdot \hat{\mu}_v$$  \text{where } $v = f(x, k_c)$ 
+        
+        The covariance $\Sigma_{ij}$ between candidates $i$ and $j$ is:
+       $$ \Sigma_{ij} = \frac{1}{n'|X|} \sum_{x \in X} g(f(x, i)) \cdot g(f(x, j)) \cdot \hat{\sigma}^2_v \quad \text{where } v = f(x, k_c) $$
+        Here, $\hat{\mu}_v$ and $\hat{\sigma}^2_v$ are the mean and variance of the leakage for a given intermediate value $v$, estimated from experimental traces.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Projecting SR: The Methodology}
+    
+        The core of the method is to model the attack's outcome statistically.
+        \begin{itemize}
+            \item First, the leakage statistics ($\hat{\mu}_v$ and $\hat{\sigma}^2_v$) are estimated using an experimental set of traces.
+            
+            \item A \textbf{projected number of traces}, $n'$, is chosen. This value, which represents the strength of a hypothetical adversary, is used to define the covariance matrix $\Sigma_{\ddot{\rho}}$.
+            
+            \item Many random samples are then drawn from the resulting multivariate normal distribution, $\mathcal{N}(\mu_{\ddot{\rho}}, \Sigma_{\ddot{\rho}})$.
+            
+            \item Each sample vector represents a simulated attack outcome. It is sorted to find the rank of the correct key, $rank_{k_c}$.
+            
+            \item The \textbf{projected Success Rate (SR)} is the fraction of simulations where $rank_{k_c} = 1$. This can also be extended to find the projected $SR_o$.
+        \end{itemize}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Limitations of Correlation-Based Projections}
+    
+    \begin{block}{ }
+        \begin{itemize}
+            \item  The projection formulas are based on \textbf{simplified statistical models}. The behavior of real hardware can deviate from these assumptions, due to electrical and electronic effects.
+            
+            \item \textbf{Estimation errors:} Imperfect statistical estimation of the correlation coefficient reduces the reliability of the results.
+            
+            \item \textbf{The purpose is Projection:} These are bounds designed to estimate effort when an attack has not yet succeeded, not to guarantee a break.
+        \end{itemize}
+    \end{block}
+\end{frame}
