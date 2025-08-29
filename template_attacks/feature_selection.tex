@@ -1,0 +1,80 @@
+\section{Feature selection}
+ 
+\begin{frame}
+    \frametitle{Feature Selection: A Crucial Preprocessing Step}
+    \begin{block}{Why Feature Selection is Needed}
+        \begin{itemize}
+            \item Side-channel traces can contain hundreds or thousands of samples (time points)
+            \item Too many samples can introduce noise, increase computational complexity, and lead to numerical instability, especially for machine learning algorithms and covariance matrix inversion in Template Attacks
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\frametitle{Feature Selection: Common Techniques}
+            \item Feature selection aims to select a subset of trace samples that contain the most sensitive leakage information, often explicitly identifying them as \textbf{Points of Interest (POIs)}, or to transform the data into a smaller, more meaningful set of \textbf{features}
+            \item This process helps to filter out redundant or uncorrelated information, making the profiling and exploitation phases more efficient and effective.
+    \begin{block}{}
+        \begin{itemize}
+            \begin{itemize}
+                \item \textbf{Maximum Variance:} Selecting samples that show the most variation across traces
+                \item \textbf{Sum of Squares of t-difference (SOST):} Identifies samples where the difference in means between classes (e.g., key hypotheses) is most statistically significant
+                \item \textbf{Principal Component Analysis (PCA):} A dimensionality reduction technique that transforms original, correlated variables into a new set of uncorrelated variables (principal components), ordered by the amount of variance they explain
+            \end{itemize}
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Sum-of-Differences}
+
+    Instead of relying on complex statistics, we can use a simple and intuitive method to find the best Points of Interest (POIs).
+
+    \begin{block}{}
+        Identify the exact moments in time where the side-channel traces for different key hypotheses are \textbf{most different} from each other.
+    \end{block}
+
+    This method involves three main steps, which we will now cover one by one.
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Feature Selection: The Sum-of-Differences Method}
+    
+    A straightforward way to find the most interesting points in a trace is to find where the average traces for different key hypotheses \textbf{differ the most}.
+    
+    \begin{block}{Step 1: Calculate Average Traces}
+        For each key hypothesis $k$ (or leakage model group), calculate its average trace, $M_k$. For each sample point $i$ in the trace, this is:
+        \[ M_{k,i} = \frac{1}{T_k} \sum_{j=1}^{T_k} t_{j,i} \]
+        where $T_k$ is the number of traces for hypothesis $k$.
+    \end{block}
+\end{frame}
+    
+
+\begin{frame}{Feature Selection: The Sum-of-Differences Method}
+    \begin{block}{Step 2: Create a Master Difference Trace}
+        Create a single "master trace," $D$, by summing the absolute differences between all pairs of the average traces at each sample point $i$:
+        \[ D_i = \sum_{k_1, k_2} |M_{k_1, i} - M_{k_2, i}| \]
+    \end{block}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{From Difference Trace to Points of Interest}
+    
+    The master difference trace, $D$, will have large peaks at the time samples where the leakage is most pronounced. These peaks are our candidate Points of Interest (POIs).
+    
+    % \includegraphics[width=0.8\textwidth]{difference_trace_example.png}
+    
+    \begin{alertblock}{Step 3: Pruning the Peaks}
+        It is crucial to select points that are not only significant but also \textbf{separated in time}. This ensures they capture different aspects of the computation and improves the stability of the covariance matrix.
+        
+        \begin{itemize}
+            \item A simple "pruning" method is to select a peak and then eliminate its nearest neighbors from consideration.
+            \item Repeat until the desired number of POIs (e.g., 3 to 5) is reached.
+        \end{itemize}
+    \end{alertblock}
+    
+    The final set of pruned peaks gives us the vector of features to be used for building our templates.
+    
+\end{frame}

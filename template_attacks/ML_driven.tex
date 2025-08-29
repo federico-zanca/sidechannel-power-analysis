@@ -1,0 +1,45 @@
+\section{Profiled SCAs: Machine Learning} % Combined Section Title
+
+ 
+\begin{frame}
+    \frametitle{Machine Learning for Profiled SCAs}
+    \begin{block}{Beyond Statistical Templates}
+        \begin{itemize}
+            \item Machine Learning (ML) techniques offer an alternative to traditional Template Attacks.
+            \item Instead of calculating probabilities, ML uses a \textbf{classification step} to identify the secret information
+            \item A key advantage: ML provides a \textbf{nonparametric and data-driven approach}, removing assumptions about the statistical distribution of the leakage (like the Gaussian assumption in TAs)
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\frametitle{Support Vector Machines}
+    \begin{block}{Support Vector Machines (SVMs)}
+        \begin{itemize}
+            \item SVMs are a widely used and effective choice for profiled side-channel attacks.
+            \item Their goal is to find an optimal hyperplane that best separates data points belonging to different classes (e.g., traces for key bit '0' vs. key bit '1')
+            \item This hyperplane acts as a decision boundary
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+ 
+\begin{frame}
+    \frametitle{Support Vector Machines (SVMs): Detailed Flow}
+    \begin{block}{Profiling Phase (Training)}
+        \begin{itemize}
+            \item Using the controlled device, the attacker collects many labeled side-channel traces (traces paired with their known key bit values)
+            \item The SVM algorithm learns from this labeled data to compute the optimal hyperplane
+            \item This process involves mapping the traces into a (potentially) higher-dimensional space where they become linearly separable, making it easier to find the separating hyperplane
+        \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}
+\frametitle{Support Vector Machines (SVMs): Detailed Flow}
+    \begin{block}{Classification Phase}
+        \begin{itemize}
+            \item A new, unlabeled side-channel trace is acquired from the target device (where the key is unknown)
+            \item This new trace is then input into the trained SVM model
+            \item The SVM classifies the trace by determining which side of the learned hyperplane it falls on, thereby predicting the most likely key bit value
+        \end{itemize}
+    \end{block}
+\end{frame}

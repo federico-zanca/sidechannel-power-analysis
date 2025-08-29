@@ -1,0 +1,33 @@
+\section{Number of Traces}
+%---------------------------------------------------------
+
+\begin{frame}
+    \frametitle{Number of Traces (N.O.T.): Definition}
+    \begin{block}{What it Measures}
+        \begin{itemize}
+            \item The most commonly used metric to quantify the efficiency of a side-channel attack
+            \item It represents the minimum number of side-channel measurements (traces) an attacker needs to successfully recover the secret key
+        \end{itemize}
+    \end{block}
+
+\newline
+    Its primary purpose is to assess how "data-hungry" an attack is. \newline \newline
+    A lower N.O.T. indicates a more effective or faster attack, as fewer measurements are required to compromise the secret. \newline \newline
+       
+        
+    
+\end{frame}
+
+%---------------------------------------------------------
+
+\begin{frame}
+    \frametitle{Number of Traces (N.O.T.): Limitations}
+    \begin{block}{Challenges and Limitations}
+        \begin{itemize}
+            \item \textbf{Attack Dependent:} The N.O.T. value is inherently tied to the specific side-channel attack method employed (e.g., DPA, CPA, Template Attacks), making direct comparisons between different attacks difficult
+            \item \textbf{Vague Key Recovery:} The term "key recovery" can be imprecise; it might refer to recovering the full key, a partial key, or simply reducing the entropy of the key space, leading to ambiguity in evaluation
+            \item \textbf{Conflates Device and Attacker:} N.O.T. is not an inherent measure of a device's security. It conflates the device's inherent physical leakage with the attacker's computational capabilities (e.g., ability to collect many traces, search the key space). This coalescence makes it difficult to obtain a clear picture of the device's true vulnerability and to identify countermeasures that are robust against any attacker
+
+        \end{itemize}
+    \end{block}
+\end{frame}

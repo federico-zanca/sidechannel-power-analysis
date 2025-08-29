@@ -1,0 +1,231 @@
+\section{Masking} 
+
+\begin{frame}
+    \frametitle{Countermeasure Philosophy: Masking}
+    
+    \textbf{Masking} takes a different approach from Hiding. Instead of changing the device's physical properties, it fundamentally \textbf{changes the data being processed}.
+    
+    \begin{alertblock}{The Goal of Masking}
+        Masking aims to randomize every sensitive intermediate value within the algorithm, making the device's power consumption statistically independent of the true, secret data.
+    \end{alertblock}
+    
+    This is a powerful countermeasure that can provide security even on a "leaky" device.
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Core Idea: Splitting Secrets into Shares}
+
+    Masking is a form of \textbf{secret sharing}. Every sensitive value, $v$, is split into two or more \textbf{shares} that are processed independently.
+    
+    For a basic first-order scheme, we split $v$ into two shares:
+    
+    \begin{itemize}
+        \item A random value, $m$, called the \textbf{mask}.
+        \item The masked value, $v_m$, which is a combination of the secret and the mask.
+    \end{itemize}
+
+    \begin{block}{Example: Boolean Masking with XOR}
+        The most common method is to use the XOR operation:
+        \[ v_m = v \oplus m \]
+        The device works with $v_m$ and $m$, but never with $v$ directly. To recover the original value, one simply computes $v = v_m \oplus m$.
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{How Masking Defeats First-Order DPA}
+
+    The security of masking comes from statistical independence.
+
+    \begin{itemize}
+        \item The mask, $m$, is a fresh, uniformly random value for each execution.
+        \item This means the masked value, $v_m = v \oplus m$, is \textbf{also uniformly random}, regardless of the secret value $v$.
+        \item An attacker measuring the power consumption of an operation on $v_m$ will see a value that is statistically independent of $v$.
+    \end{itemize}
+
+    \begin{alertblock}{Security Guarantee}
+        As long as the attacker can only probe the leakage of a single share at a time (the "\textbf{first-order}" assumption), the leakage they observe contains no information about the secret value. This provides provable security against first-order DPA.
+    \end{alertblock}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{A Fully Masked Implementation}
+
+    To be effective, masking must be applied \textbf{throughout the entire algorithm}.
+    
+    \begin{enumerate}
+        \item \textbf{Masking the Inputs:} The plaintext and key are masked at the very beginning of the computation.
+        
+        \item \textbf{Processing Masked Values:} All subsequent operations in the algorithm must be redesigned to correctly operate on the shares and produce new, correctly masked intermediate results.
+        
+        \item \textbf{Unmasking the Output:} The final result of the encryption is also masked. The mask must be removed at the very end to produce the correct ciphertext.
+    \end{enumerate}
+    
+    A single unmasked operation at any point can create a fatal vulnerability.
+    
+\end{frame}
+
+\begin{frame}
+    The main difficulty in masking is correctly handling non-linear operations.
+    \frametitle{The Challenge of Non-Linear Functions}    
+    \begin{block}{Linear Operations are Easy}
+        For a linear function $f$ (with respect to XOR), masking is simple because the function distributes over the operation:
+        \[ f(v \oplus m) = f(v) \oplus f(m) \]
+        The output mask $f(m)$ is easy to compute.
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Challenge of Non-Linear Functions}    
+
+    \begin{block}{Non-Linear Operations are Hard}
+        For a non-linear function like an AES S-box, this is not true:
+        \[ S(v \oplus m) \neq S(v) \oplus S(m) \]
+        \begin{itemize}
+            \item The relationship between the input mask and the output mask is complex.
+            \item Special, and often computationally expensive, "masked S-box" implementations are required to compute the result while keeping all intermediate values properly masked.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Types of Masking and Blinding}
+
+    The operation used for sharing defines the type of masking.
+    
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \textbf{Boolean Masking}
+            \begin{itemize}
+                \item Uses XOR ($\oplus$).
+                \item $v_m = v \oplus m$
+                \item Ideal for bitwise or XOR-based algorithms like AES.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Arithmetic Masking}
+            \begin{itemize}
+                \item Uses modular addition or multiplication.
+                \item $v_m = v + m \pmod{n}$
+                \item Used for algorithms based on arithmetic, like RSA.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    
+    \begin{block}{Blinding}
+        The term \textbf{blinding} is typically used to refer to arithmetic masking when applied to asymmetric algorithms like RSA.
+        \begin{itemize}
+            \item \textbf{Message Blinding:} Applying a multiplicative mask to the message.
+            \item \textbf{Exponent Blinding:} Applying an additive mask to the private exponent.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+
+
+
+%implementations of masking
+
+
+
+\begin{frame}
+    \frametitle{Masking at the Architecture Level: Software}
+
+
+    \begin{block}{The Basic Software Workflow}
+        \begin{enumerate}
+            \item XOR the initial plaintext and/or key with a random mask.
+            
+            \item Ensure all intermediate values remain correctly masked throughout the computation.
+            
+            \item Keep track of how the mask itself is transformed by the algorithm's operations.
+            
+            \item Remove the final mask from the output to get the correct ciphertext.
+        \end{enumerate}
+    \end{block}
+
+    This process is straightforward for linear operations, but non-linear operations (like table look-ups) require special attention.
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{The Challenge: Masking Table Look-ups}
+
+    Many modern ciphers, like AES, use table look-ups (e.g., S-boxes) for their non-linear operations. How do you mask a table look-up?
+
+    \begin{block}{The Solution: On-the-Fly Masked Tables}
+        Instead of using a fixed table $T(v)$, we must generate a temporary, masked table, $T_m$, for each execution.
+        
+        \begin{itemize}
+            \item The goal is to create a table where looking up a masked input gives a masked output:
+            \[ T_m(v \oplus m_{in}) = T(v) \oplus m_{out} \]
+            
+            \item To build this table, the device must iterate through all possible inputs, calculate the output, and store the correctly masked result in the new table.
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{}
+        This process must be repeated for every new mask used. This increases both the \textbf{computational effort} (to build the table) and the \textbf{memory requirement} (to store it), adding significant performance overhead.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Random Precharging}
+
+    Random precharging is a simple technique that \textbf{implicitly masks} the power consumption without directly masking the data values themselves.
+    
+    \begin{block}{How It Works}
+        This technique is effective against attacks that exploit the \textbf{Hamming Distance} leakage model (e.g., of a data bus).
+        \begin{enumerate}
+            \item Before loading a sensitive value, $v$, onto the bus (or into a register), first load a random value, $m$.
+            
+            \item The device's power consumption will now be related to the Hamming Distance between the random value and the real value: $HD(v, m)$.
+            
+            \item This is equivalent to leaking the Hamming Weight of the XORed value: $HW(v \oplus m)$.
+        \end{enumerate}
+    \end{block}
+    
+    Since the attacker doesn't know the random value $m$, they cannot predict the Hamming Distance.
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pitfall: The Independence Assumption}
+
+    Masking's security proofs often rely on an assumption that can fail in the real world.
+    
+    \begin{block}{Theoretical Assumption}
+        The power consumption of a masked value is independent of the secret.
+    \end{block}
+    
+    \begin{alertblock}{Flaw}
+        This assumes leakage depends on only \textbf{one} value at a time. In reality, leakage often depends on the \textbf{relationship between multiple values}, such as the Hamming Distance between consecutive states of a data bus.
+    \end{alertblock}
+    
+    This "combined leakage" can completely break a masking scheme.
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example: How a Shared Mask Creates a Flaw}
+    
+    Imagine two values, $v_m$ and $w_m$, that share the \textbf{same mask} ($m$) are processed back-to-back on a device that leaks Hamming Distance.
+    \[ v_m = v \oplus m \quad \text{and} \quad w_m = w \oplus m \]
+    
+    The device's leakage is proportional to:
+    \[ HD(v_m, w_m) = HW(v_m \oplus w_m) \]
+    
+    The math shows the mask cancels out completely:
+    \[ HW((v \oplus m) \oplus (w \oplus m)) = HW(v \oplus w) = HD(v, w) \]
+    
+    \begin{alertblock}{}
+        The device leaks information about the \textbf{unmasked} secret values, defeating the countermeasure.
+    \end{alertblock}
+
+\end{frame}
+
+

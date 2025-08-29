@@ -1,0 +1,82 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{pifont}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\input{main thing/main}
+%------------------------------------------------------------
+%This block of code defines the information to appear in the
+%Title page
+\title[Power Analysis Side-channel Attacks] %optional
+{Side-channel security of superscalar CPUs}
+
+\subtitle{}
+
+\author[Federico Zanca] % (optional)
+{Federico Zanca}
+
+\institute[] % (optional)
+{
+  %\inst{1}%
+  Computer Science and Engineering\\
+  Politecnico di Milano
+  %\and
+  %\inst{2}%
+  %Faculty of Chemistry\\
+  %Very Famous University
+}
+
+\date[2025] % (optional)
+{}
+
+%\logo{\includegraphics[height=1cm]{overleaf-logo}}
+
+%End of title page configuration block
+%------------------------------------------------------------
+
+
+
+%------------------------------------------------------------
+%The next block of commands puts the table of contents at the 
+%beginning of each section and highlights the current section:
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+%------------------------------------------------------------
+
+
+\begin{document}
+
+%The next statement creates the title page.
+\frame{\titlepage}
+
+
+%---------------------------------------------------------
+%This block of code is for the table of contents after
+%the title page
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+%---------------------------------------------------------
+
+
+
+
+
+
+\input{superscalar/1-intro}
+\input{superscalar/2-cpi}
+\input{superscalar/3-leakage-modeling}
+
+
+
+
+
+\end{document}

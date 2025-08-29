@@ -1,0 +1,233 @@
+\section{Key Enumeration and Rank Estimation}
+
+\begin{frame}
+    \frametitle{The Full Key Recovery Problem}
+
+    The divide-and-conquer strategy gives us scores and ranks for each key \textbf{part} (e.g., each byte of an AES key).
+
+    \begin{itemize}
+        \item If the correct byte is Rank 1 for all 16 parts, recovering the full key is trivial.
+        \item But what if some correct bytes have a lower rank? The attacker must test many combinations.
+    \end{itemize}
+
+    \begin{block}{The Central Question}
+        How do we translate the security metrics for 16 independent 8-bit key parts into a single, meaningful security metric for the full 128-bit key?
+    \end{block}
+
+    This is solved by two related, but distinct, processes: \textbf{Key Enumeration} and \textbf{Rank Estimation}.
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Key Enumeration: The Attacker's Approach}
+
+    Key Enumeration is a practical process performed by an attacker in an \textbf{unknown-key} scenario.
+    
+    \begin{itemize}
+        \item \textbf{Input:} The full set of scores for \textit{all} key candidates for \textit{all} key parts (e.g., 16 lists of 256 scores for AES-128).
+        \item \textbf{Process:} Systematically construct and test full key candidates, starting with the most probable combinations derived from the scores.
+        \item \textbf{Limit:} The process stops after a predefined number of attempts, $n_{en}$, which reflects the attacker's computational budget.
+    \end{itemize}
+    
+    \begin{alertblock}{Binary Outcome}
+        The result is a simple success or failure:
+        \begin{itemize}
+            \item \textbf{Success:} The correct full key is found within $n_{en}$ trials.
+            \item \textbf{Failure:} The key is not found, and the attacker gives up.
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Key Enumeration}
+
+    \textbf{Key Enumeration} is a practical process performed by an attacker in an \textbf{unknown-key} scenario.
+    
+    \begin{itemize}
+        \item \textbf{Input:} The full set of scores for \textit{all} key candidates for \textit{all} key parts (e.g., 16 lists of 256 scores for AES-128).
+        \item \textbf{Process:} Systematically construct and test full key candidates, starting with the most probable combinations derived from the scores.
+        \item \textbf{Limit:} The process stops after a predefined number of attempts, $n_{en}$, which reflects the attacker's computational budget.
+    \end{itemize}
+\end{frame}
+\begin{frame} {Key Enumeration}
+    \begin{alertblock}{Measuring the Outcome}
+        The outcome is a precise security level measured in bits of effort:
+        \begin{itemize}
+            \item \textbf{If the key is found in $n_e \le n_{en}$ trials}, the security of the device against this attack is exactly:
+            $$ \text{security} = \log_2(n_e) \text{ bits} $$
+            
+            \item \textbf{If the key is not found within the limit}, the security is only known to be greater than the attacker's effort:
+            $$ \text{security} > \log_2(n_{en}) \text{ bits} $$
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Rank Estimation}
+
+    When key enumeration fails after $n_{en}$ attempts, the evaluator is left with a massive uncertainty gap. The true security could be anywhere from $n_{en}$ to $2^{128}$ (using AES-128 as our target).
+    
+    \begin{block}{Rank Estimation}
+        To overcome this, the process of \textbf{Rank Estimation} was proposed. It is typically a \textbf{known-key analysis} that can:
+        \begin{itemize}
+            \item Quickly estimate the remaining brute-force effort for full key recovery.
+            \item Achieve this without performing the costly process of listing all possible keys.
+            \item Provide a precise security level even when the attack is not fully successful.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Rank Estimation: The Probabilistic Framework}
+
+    To highlight the process, we use the \textbf{histogram-convolution-based algorithm} of Glowacz as our reference.
+
+    \begin{block}{From Scores to Log-Probabilities}
+        The process begins with the list of probabilities for each key candidate, which are converted to scores in the log domain:
+        \[
+            \text{score}_k^i = \log \Pr(k_i)
+        \]
+        where $i$ is the key part ($1, \dots, p$) and $k$ is the candidate ($0, \dots, m-1$).
+        
+        Assuming independence between key parts, the score for a full key is the sum of the scores of its parts:
+        \[
+             \Pr(\text{fullkey}) = \prod_{i=1}^{p}\Pr(k^i) \quad \iff \quad \log \Pr(\text{fullkey}) = \sum_{i=1}^{p} \log \Pr(k_i)
+        \]
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Algorithm: Histogram-Based Rank Estimation}
+    
+    \begin{algorithm}[H]
+    \begin{algorithmic}[] 
+        \Statex \textbf{Input:} $\text{score}_k^i$, for $i=1, \dots, p$ and $k=0, \dots, m-1$
+        \Statex \textbf{Output:} estimated rank, security (in bits)
+        
+        \For{$i = 1$ to $p$}
+            \State $H^i \gets \text{hist}([\text{score}_0^i, \dots, \text{score}_{m-1}^i])$
+        \EndFor
+        
+        \State $H \gets H_1$
+        \For{$i = 2$ to $p$}
+            \State $H \gets \text{conv}(H, H^i)$ 
+        \EndFor
+        
+        \State $lp_c \gets \sum_{i=1}^{p} \log \Pr(k_c^i)$
+        
+        \State $\text{estimated\_rank} \approx \sum_{j=\text{bin}(lp_c)}^{\text{max\_bin}} H(j)$
+        \State $\text{security} \gets \log_2(\text{estimated\_rank})$
+    \end{algorithmic}
+    \end{algorithm}
+\end{frame}
+
+
+
+\begin{frame}
+    \frametitle{The Histogram-Based Method: Step-by-Step}
+
+    The algorithm of Glowacz follows a three-step process to estimate the full key rank:
+
+    \begin{enumerate}
+        \item \textbf{Create Histograms:} For each of the $p$ key parts, compute a histogram of its $m$ scores (log-probabilities) using a fixed number of bins, $n_b$. This produces $p$ individual score distributions, $H_1, \dots, H_p$.
+        
+        \item \textbf{Convolve Histograms:} Iteratively convolve the $p$ histograms to produce a single final histogram, $H$. This final histogram represents the score distribution for the full key. This process introduces a small, unavoidable \textit{quantization error}.
+        
+        \item \textbf{Calculate the Rank:} Compute the total score of the correct key, $lp_c = \sum_{i=1}^{p} \text{score}_{k_c^i}$. Find which bin this score falls into, $\text{bin}(lp_c)$, and sum the counts of all bins corresponding to higher scores. This sum is the estimated rank.
+    \end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Handling Quantization Error: Lower and Upper Bounds}
+    
+    The use of histograms introduces quantization errors. To account for this, the estimated rank is bounded to provide a reliable security range.
+    
+    \begin{block}{Rank Bounding Formulas}
+        Given the final convoluted histogram $H$, the number of key parts $p$, and the correct key's score bin $\text{bin}(lp_c)$, the bounds are:
+        
+        \textbf{Lower Bound:}
+        \[ \text{rank}_{\text{lower}} = \sum_{j=\text{bin}(lp_c)+p}^{\text{max\_bin}} H(j) \]
+        
+        \textbf{Upper Bound:}
+        \[ \text{rank}_{\text{upper}} = \sum_{j=\text{bin}(lp_c)-p}^{\text{max\_bin}} H(j) \]
+    \end{block}
+    
+    These bounds provide a tight and accurate estimation of the true key rank, as shown in experimental results on both simulated and real-world devices.
+\end{frame}
+
+
+
+
+%%% MAYBE ADD IMAGE FROM PAPER (pagina 29)
+\begin{frame}
+    \frametitle{A Tempting (But Wrong) Shortcut}
+    
+    It is tempting to estimate the full key rank by simply multiplying the ranks of the correct key parts (or, equivalently, summing their log-ranks).
+    
+    \begin{alertblock}{This is Incorrect and Misleading}
+        This approach should be avoided for several reasons:
+        \begin{itemize}
+            \item It does not correspond to any valid key enumeration strategy an attacker would actually use.
+            \item It falsely assumes the attacker has prior knowledge of the individual key part ranks, which they do not.
+            \item As a result, it provides a \textbf{pessimistic lower bound} on the true rank, making the attack seem more effective than it is and underestimating the device's security.
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{A Tempting (But Wrong) Shortcut}
+    
+    Consider a 4-bit key attacked as two 2-bit parts, $K_1$ and $K_2$, with the following probabilities:
+    \begin{itemize}
+        \item $\Pr(K_1) = [\texttt{00}:0.8, \textbf{01:0.1}, \texttt{10}:0.08, \texttt{11}:0.02]$
+        \item $\Pr(K_2) = [\textbf{00:0.09}, \texttt{01}:0.5, \texttt{10}:0.01, \texttt{11}:0.3]$
+    \end{itemize}
+    The correct full key is $[\texttt{01}, \texttt{00}]$.
+    
+    \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+        \textbf{Shortcut Calculation:}
+        \begin{itemize}
+            \item The rank of $k_c^1=\texttt{01}$ is 2.
+            \item The rank of $k_c^2=\texttt{00}$ is 3.
+            \item Rank product = $2 \times 3 = 6$.
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+        \textbf{Optimal Enumeration:}
+        \begin{itemize}
+            \item An optimal enumeration strategy would list all 16 full keys by their true combined probability.
+            \item The correct key $[\texttt{01},\texttt{00}]$ is found at position 9.
+            \item The true rank is 9.
+        \end{itemize}
+    \end{column}
+    \end{columns}
+    
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Limitations of Enumeration and Rank Estimation}
+
+    \begin{alertblock}{}
+        The optimality and soundness of these techniques depend on a critical condition: the attack scores must represent probabilities or log-probabilities.
+    \end{alertblock}
+
+    \begin{itemize}
+        \item The underlying math assumes that scores for independent key parts can be combined via multiplication (for probabilities) or addition (for log-probabilities) to find the full key's probability.
+        
+        \item \textbf{Non-Bayesian scores}, such as raw correlation coefficients, have no such mathematically correct combination function.
+        
+        \item Applying simple heuristics like adding or multiplying these scores leads to inaccurate full key scores and a \textbf{suboptimal} enumeration or rank estimation.
+    \end{itemize}
+
+    \begin{block}{Practical Mitigation}
+        Since Bayesian scores are not always available in practice, this limitation can be addressed with other heuristics, such as a \textbf{Bayesian extension}, which attempts to convert non-probabilistic scores into a usable format.
+    \end{block}
+\end{frame}
+
+

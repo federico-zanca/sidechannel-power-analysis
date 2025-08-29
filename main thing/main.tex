@@ -1,0 +1,118 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{pifont}
+\usepackage{caption}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{float}
+\usepackage{tabularray}
+\usepackage{xcolor} % Already included by tabularray
+\UseTblrLibrary{booktabs}
+\usepackage{booktabs}
+\usepackage{tabularx}
+%------------------------------------------------------------
+%This block of code defines the information to appear in the
+%Title page
+\title[Power Analysis Side-channel Attacks] %optional
+{Power Analysis Side-channel Attacks}
+
+\subtitle{}
+
+\author[Federico Zanca] % (optional)    
+{Federico Zanca}
+
+\institute[] % (optional)
+{
+  %\inst{1}%
+  Computer Science and Engineering\\
+  Politecnico di Milano
+  %\and
+  %\inst{2}%
+  %Faculty of Chemistry\\
+  %Very Famous University
+}
+
+\date[2025] % (optional)
+{}
+
+%\logo{\includegraphics[height=1cm]{overleaf-logo}}
+
+%End of title page configuration block
+%------------------------------------------------------------
+
+
+
+%------------------------------------------------------------
+%The next block of commands puts the table of contents at the 
+%beginning of each section and highlights the current section:
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+%------------------------------------------------------------
+
+
+\begin{document}
+
+%The next statement creates the title page.
+\frame{\titlepage}
+
+
+%---------------------------------------------------------
+%This block of code is for the table of contents after
+%the title page
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+%---------------------------------------------------------
+
+
+
+
+\section{Introduction to Side-Channel Attacks}
+
+\begin{frame}
+    \frametitle{What Are Side-Channel Attacks?}
+
+    \begin{block}{Definition}
+        Side-channel attacks exploit unintended \textbf{physical leakages} from cryptographic devices to extract secret information.
+        \begin{itemize}
+            \item Instead of attacking the mathematical foundations of a cryptographic algorithm, they target information leaked through physical phenomena.
+            \item This happens if there is a relationship between data/operations and a certain physical phenomena that can be observed
+            \item Common leakage sources include \textbf{power consumption}, electromagnetic emissions, timing variations, and even sound or heat.
+        \end{itemize}
+    \end{block} 
+\end{frame}
+
+\begin{frame}{Why Are They Important?}
+    \begin{block}{}
+\textbf{A strong encryption algorithm is not secure if the underlying implementation is flawed
+}        \begin{itemize}
+            \item Many devices thought to be secure can be compromised by analyzing side-channels.
+            \item Attackers can retrieve secret keys without breaking the cryptographic math.
+            \item Real-world cryptographic implementations often leak enough information to be vulnerable.
+        \end{itemize}
+    \end{block}
+    
+First publicized power analysis attacks appeared in the late 1990s. \newline
+Since then, the field has evolved to include a variety of sophisticated techniques and powerful countermeasures.
+\end{frame}
+
+\input{main thing/power}
+\input{main thing/SPA}
+\input{main thing/models}
+\input{main thing/DPA}
+\input{main thing/CPA}
+
+\input{main thing/hiding}
+\input{main thing/masking}
+\end{document}

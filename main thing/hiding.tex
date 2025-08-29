@@ -1,0 +1,280 @@
+\section{Hiding}
+
+\begin{frame}
+    \frametitle{Countermeasure Philosophy: Hiding}
+    
+        Power analysis attacks work because a device's power consumption \textbf{depends on the data} it is processing.
+  
+    
+    \begin{alertblock}{The Goal of Hiding}
+        Hiding aims to break the link between the power consumption and the data values. The cryptographic algorithm itself remains unchanged, but its execution becomes difficult to analyze.
+    \end{alertblock}
+    
+    In short, Hiding aims to make the power traces useless to an attacker.
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hiding: Two Fundamental Approaches}
+    
+    To make power consumption independent of the data, there are two ideal (but theoretical) goals:
+    
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \textbf{1. Random Power}
+            \begin{itemize}
+                \item Make the device consume a \textbf{random} amount of power in each clock cycle.
+                \item The real signal is buried in unpredictable noise.
+            \end{itemize}
+        \end{column}
+        
+        \begin{column}{0.5\textwidth}
+            \textbf{2. Constant Power}
+            \begin{itemize}
+                \item Make the device consume an \textbf{equal} amount of power in each clock cycle, regardless of the operation or data.
+                \item There are no data-dependent variations to exploit.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    
+    While perfect randomness or equality is impossible in practice, these two ideals guide all hiding countermeasure design.
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hiding in Practice: Time vs. Amplitude}
+    
+    Practical hiding techniques can be divided into two groups based on which dimension of the power trace they manipulate.
+    
+    \begin{block}{1. Manipulating the Time Dimension}
+        \begin{itemize}
+            \item These techniques randomize \textbf{when} operations occur.
+            \item The goal is to misalign the power traces from different executions, making averaging and statistical analysis difficult.
+            \item \textit{Example: Random clock jitters or random instruction insertion.}
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{2. Manipulating the Amplitude Dimension}
+        \begin{itemize}
+            \item These techniques directly alter the power consumption characteristics of the operations themselves.
+            \item The goal is to make the power draw for different operations either more random or more uniform.
+            \item \textit{Example: Special logic gates that draw constant power.}
+        \end{itemize}
+    \end{block}
+    
+\end{frame}
+
+% TIME DIMENSION
+
+\begin{frame}
+    \frametitle{Hiding: Time Dimension}
+
+    As we know, DPA and other statistical attacks require \textbf{correctly aligned} power traces to average out noise and isolate the signal.
+
+    \begin{alertblock}{The Countermeasure Strategy}
+        If we can randomize the execution of the algorithm, the operations will occur at different moments in time for each run.
+    \end{alertblock}
+
+    \begin{itemize}
+        \item This misalignment acts as a powerful defense.
+        \item An attacker will require significantly more traces to overcome the induced jitter.
+        \item The more random the execution, the more difficult the attack becomes.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hiding: Time Dimension}
+
+    The basic idea is to randomly insert "do-nothing" or dummy operations before, during, and after the real cryptographic operations.
+
+    \begin{itemize}
+        \item In each execution, randomly generated numbers decide how many dummy operations are inserted and where.
+        \item The position of each \textit{real} operation now varies randomly from trace to trace.
+    \end{itemize}
+
+    \begin{alertblock}{Critical Detail}
+        The \textbf{total number} of inserted dummy operations should be constant for all executions. This prevents an attacker from learning anything by simply measuring the total execution time.
+    \end{alertblock}
+
+    \begin{block}{Trade-Off}
+        More dummy operations provide more security but lead to a \textbf{lower throughput}. A suitable compromise must be found.
+    \end{block}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Time Hiding: Shuffling}
+
+    An alternative to inserting dummies is to randomly change the sequence of operations that can be performed in an arbitrary order.
+
+    \begin{block}{Example: AES S-Box Look-ups}
+        \begin{itemize}
+            \item In each round of AES, the 16 S-box look-ups are independent of each other.
+            \item Their execution order can be \textbf{shuffled}.
+            \item In each execution, a randomly generated sequence determines the order of the 16 look-ups, misaligning the leakage for each byte.
+        \end{itemize}
+    \end{block}
+
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \textbf{Advantage}
+            \begin{itemize}
+                \item Does not affect throughput nearly as much as inserting dummy operations.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Disadvantage}
+            \begin{itemize}
+                \item Can only be applied to a limited number of independent operations within an algorithm.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Time Hiding: Software vs. Hardware}
+
+    The effectiveness and options for time-based hiding depend heavily on the implementation level.
+
+    \begin{block}{Software Implementations}
+        \begin{itemize}
+            \item Dummy operation insertion and shuffling are both easily implemented in software.
+            \item However, their protective power is often limited.
+            \item A key requirement is a source of good on-device random numbers.
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Hardware Implementations}
+        \begin{itemize}
+            \item Hardware offers significantly more powerful options.
+            \item In addition to dummy operations and shuffling, hardware allows for direct manipulation of the clock itself.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hardware Time Hiding: Clock Manipulation}
+
+    In hardware, it is possible to directly randomize the clock signal to destroy trace alignment. Common techniques include:
+
+    \begin{itemize}
+        \item \textbf{Random Insertion of Dummy Cycles:} A finer-grained version of dummy operations where individual clock cycles are randomly used for "dummy" computations on random data.
+
+        \item \textbf{Skipping Clock Pulses:} A filter is inserted into the clock path that randomly skips clock pulses, causing jitter.
+
+        \item \textbf{Randomly Changing Clock Frequency:} An internal oscillator's frequency is controlled by random numbers, constantly changing the speed of operations.
+
+        \item \textbf{Multiple Clock Domains:} The device randomly switches between several different on-chip clock signals.
+    \end{itemize}
+
+    \begin{alertblock}{}
+        For all these techniques, the attacker must not be able to detect the countermeasure (e.g., by observing the clock signal itself).
+    \end{alertblock}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hiding in the Amplitude Dimension}
+
+    The second major hiding strategy is to directly change the \textbf{power consumption characteristics} of the operations themselves.
+
+    \begin{block}{The Goal: Lower the Signal-to-Noise Ratio (SNR)}
+        Recall that the leakage depends on the SNR. The goal is to make this value as close to zero as possible. This can be achieved in two ways:
+        \begin{itemize}
+            \item Reduce the signal ($Var(P_{op})$) to zero.
+            \item Increase the noise ($Var(P_{noise})$) to infinity.
+        \end{itemize}
+    \end{block}
+    
+    While the ideal goal of SNR=0 is unreachable, we can get close by either \textbf{increasing the noise} or \textbf{reducing the signal}.
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Amplitude Hiding: Increasing the Noise}
+
+    The goal of this approach is to build a device where random switching activity dominates the power consumption, drowning out the real signal.
+
+    \begin{block}{Hardware Techniques}
+        \begin{itemize}
+            \item \textbf{Wide Datapaths:} It is harder to attack a single bit in a 128-bit architecture than in a 32-bit one, as more unrelated bits are switching in parallel.
+            
+            \item \textbf{Noise Engines:} These are dedicated circuits, often based on random number generators connected to large capacitors, whose only job is to create random switching noise in parallel with the real computation.
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{Software Techniques}
+        \begin{itemize}
+            \item \textbf{Parallel Activity:} Programmers can increase noise by using other components of the device (e.g., coprocessors, communication interfaces) to perform random activities in parallel with the crypto algorithm.
+        \end{itemize}
+    \end{block}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Amplitude Hiding: Reducing the Signal}
+
+    The goal of this approach is to make the power consumption as constant as possible, regardless of the operation or data.
+
+    \begin{block}{Hardware Techniques}
+        \begin{itemize}
+            \item \textbf{Dedicated Logic Styles:} The most common strategy. Cells are built using special logic (e.g., Dual-Rail Pre-charge Logic) designed so that their power consumption is constant, regardless of the input data.
+            
+            \item \textbf{Power Filtering:} A filter (e.g., using switched capacitors or constant current sources) is inserted between the power supply and the crypto circuit to smooth out data-dependent variations.
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{Important Limitation}
+        Hardware-level countermeasures like filtering may not protect against attacks on electromagnetic (EM) emanations, as the EM field is generated before the power is filtered.
+    \end{alertblock}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Amplitude Hiding in Software}
+
+    While software cannot change the power characteristics of the underlying hardware, programmers can make careful choices to reduce leakage.
+
+    \begin{itemize}
+        \item \textbf{Choice of Instructions:} Choose instructions that are known to leak less information about their operands.
+        
+        \item \textbf{Constant Program Flow:} Avoid conditional jumps or branches that depend on the key or secret data. The sequence of executed instructions should always be the same.
+        
+        \item \textbf{Key-Independent Memory Access:} Avoid memory addresses that depend on the key. If necessary, use addresses that have similar leakage characteristics (e.g., the same Hamming weight).
+    \end{itemize}
+    
+    These software techniques are primarily effective against simpler SPA attacks but are generally not sufficient to defeat DPA.
+
+\end{frame}
+\begin{frame}
+  \frametitle{Hiding Countermeasures: Summary}
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+  \begin{adjustbox}{\textwidth}
+  \begin{tabularx}{\textwidth}{>{\bfseries}l >{\RaggedRight\arraybackslash}X >{\RaggedRight\arraybackslash}X}
+    \toprule
+     & Time dimension & Amplitude dimension \\
+    \midrule
+    Goal
+      & Randomize when operations occur to misalign traces
+      & Lower SNR by equalizing or randomizing power amplitude \\
+    Methods
+      & Dummy ops; Shuffling; Clock skip; Random freq; Multi-clock
+      & Reduce signal (balanced logic, filtering); Increase noise (noise engines, parallel activity) \\
+    Notes
+      & Throughput overhead; limited shufflable ops; often combined
+      & Hardware most effective; software limited; filtering may not help against EM \\
+    \bottomrule
+  \end{tabularx}
+  \end{adjustbox}
+\end{frame}
+
+
+
+%%%% DRP e WDDL? Vediamo...
+
+
+
+

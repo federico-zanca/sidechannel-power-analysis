@@ -1,0 +1,63 @@
+\section{Leakage Power Models}
+
+\begin{frame}
+    \frametitle{Two Classes of Power Analysis Attacks}
+
+    Over time, power analysis attacks have divided into two main categories:
+
+    \begin{itemize}
+        \item \textbf{Model-Based Attacks:}
+        \begin{itemize}
+            \item Rely on assumed \textbf{power leakage models} to relate device power consumption to secret data.
+            \item Use statistical techniques (difference of means, correlation, etc.) to test if a key guess matches observed traces.
+            \item \textbf{Differential Power Analysis} and \textbf{Correlation Power Analysis} fall in this category
+        \end{itemize}
+        \item \textbf{Profiling Attacks:}
+        \begin{itemize}
+            \item Use a profiling device (a surrogate of the target) to empirically build a model of how the key affects leakage.
+            \item Attack proceeds by matching new traces to the prebuilt “stencil” of leakages.
+            \item \textbf{Template Attacks} fall in this category
+        \end{itemize}
+    \end{itemize}
+
+    In both approaches, the effectiveness depends on how accurately the power model describes the real leakage behavior.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Power Models}
+
+    \begin{block}{What is a Power Model?}
+        A \textbf{power model} mathematically predicts how a device’s power consumption depends on the intermediate values manipulated by a cryptographic algorithm.
+    \end{block}
+
+    \vspace{0.5em}
+
+    Power models are essential for model-based statistical attacks; they map the algorithm’s internal computations (e.g., AES S-box outputs) to hypotheses about power consumption, and allow attackers to use observed traces to distinguish key guesses.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Typical Power Models Used in SCA}
+
+    Standard models include:
+
+    \begin{itemize}
+        \item \textbf{Hamming Weight (HW):} Number of “1” bits in a byte or word ($HW(x) = \sum_i x_i$) is related to power consumption
+        \item \textbf{Hamming Distance (HD):} Number of bits that flip between two values ($HD(x, y) = HW(x \oplus y)$) is related to power consumption
+        \item \textbf{Least Significant Byte (LSB):} Power consumption is related to the value of LSB
+        \item \textbf{Zero Value (ZV):} Power spikes when intermediate value = 0 (due to gate level effects)
+        \item \textbf{Multivariate/Learned Models}: Combines multiple leakage sources
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{How Power Models Enable Statistical Attacks}
+
+    \begin{itemize}
+        \item Statistical attacks use the power model to \textbf{make hypotheses}: for each key guess, predict the hypothetical leakage at every trace.
+        \item Measurements are grouped/binned by predicted value.
+        \item Statistics (such as mean, correlation, or likelihood score) are computed for each hypothesis.
+        \begin{block}
+            \item The correct key is identified as the one whose hypothesis gives the highest statistical match to the observed physical traces.
+        \end{block}
+    \end{itemize}
+\end{frame}
